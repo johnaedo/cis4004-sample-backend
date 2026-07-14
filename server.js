@@ -26,7 +26,7 @@ app.use(
     origin:
       process.env.NODE_ENV === "production"
         ? process.env.CLIENT_URL || "https://your-app-name.railway.app"
-        : "http://localhost:8080",
+        : "http://localhost:8888",
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
@@ -52,37 +52,44 @@ app.use(errorHandler);
 
 const PORT = process.env.PORT || 3001;
 
-// Start server
-const server = app.listen(PORT, () => {
-  console.log(
-    `🚀 Server running in ${
-      process.env.NODE_ENV || "development"
-    } mode on port ${PORT}`,
-  );
-  if (process.env.NODE_ENV === "production") {
-    console.log("🌐 Serving static files from React build");
-  }
-});
+// Only start listening when this file is run directly (e.g. `node server.js`
+// or `npm start`). When it's imported by Jest/Supertest via require("./server.js"),
+// this block is skipped, so tests don't open a real TCP handle that never closes.
+const isMainModule =
+  process.argv[1] && import.meta.url === `file://${process.argv[1]}`;
 
-// Graceful shutdown
-process.on("SIGTERM", () => {
-  console.log("SIGTERM signal received: closing HTTP server");
-  server.close(() => {
-    console.log("HTTP server closed");
+if (isMainModule) {
+  const server = app.listen(PORT, () => {
+    console.log(
+      `🚀 Server running in ${
+        process.env.NODE_ENV || "development"
+      } mode on port ${PORT}`,
+    );
+    if (process.env.NODE_ENV === "production") {
+      console.log("🌐 Serving static files from React build");
+    }
   });
-});
 
-// Handle uncaught exceptions
-process.on("uncaughtException", (err) => {
-  console.error("Uncaught Exception:", err);
-  process.exit(1);
-});
+  // Graceful shutdown
+  process.on("SIGTERM", () => {
+    console.log("SIGTERM signal received: closing HTTP server");
+    server.close(() => {
+      console.log("HTTP server closed");
+    });
+  });
 
-// Handle unhandled promise rejections
-process.on("unhandledRejection", (err) => {
-  console.error("Unhandled Rejection:", err);
-  process.exit(1);
-});
+  // Handle uncaught exceptions
+  process.on("uncaughtException", (err) => {
+    console.error("Uncaught Exception:", err);
+    process.exit(1);
+  });
+
+  // Handle unhandled promise rejections
+  process.on("unhandledRejection", (err) => {
+    console.error("Unhandled Rejection:", err);
+    process.exit(1);
+  });
+}
 
 if (typeof module !== "undefined" && module.exports) {
   module.exports = app; // For Jest/test compatibility

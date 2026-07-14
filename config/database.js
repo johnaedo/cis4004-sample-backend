@@ -11,6 +11,7 @@ const getConnectionConfig = () => {
     port: parseInt(process.env.DB_PORT) || "3306",
     password: process.env.DB_PASSWORD || "budget",
   };
+  console.table(config);
 
   // Only add password if it's set
   /*
