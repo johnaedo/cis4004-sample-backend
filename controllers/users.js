@@ -23,7 +23,7 @@ const UsersController = {
       const token = jwt.sign(
         { id: user._id },
         process.env.JWT_SECRET || "your-secret-key",
-        { expiresIn: "24h" }
+        { expiresIn: "24h" },
       );
 
       res.status(201).json({
@@ -70,7 +70,7 @@ const UsersController = {
       const token = jwt.sign(
         { id: user._id },
         process.env.JWT_SECRET || "your-secret-key",
-        { expiresIn: "24h" }
+        { expiresIn: "24h" },
       );
 
       res.json({
@@ -99,7 +99,10 @@ const UsersController = {
         return res.status(404).json({ error: "User not found" });
       }
 
-      const validPassword = await bcrypt.compare(currentPassword, user.password);
+      const validPassword = await bcrypt.compare(
+        currentPassword,
+        user.password,
+      );
 
       if (!validPassword) {
         return res.status(401).json({ error: "Current password is incorrect" });
@@ -130,7 +133,7 @@ const UsersController = {
   getUserProfile: async (req, res) => {
     try {
       const user = await User.findById(req.user.id).select(
-        "id username email createdAt"
+        "id username email createdAt",
       );
 
       if (!user) {

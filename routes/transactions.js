@@ -1,7 +1,7 @@
-import express from 'express';
-import mongoose from 'mongoose';
-import Transaction from '../models/Transaction.js';
-import { authenticateToken } from '../middleware/auth.js';
+import express from "express";
+import mongoose from "mongoose";
+import Transaction from "../models/Transaction.js";
+import { authenticateToken } from "../middleware/auth.js";
 
 const router = express.Router();
 
@@ -20,11 +20,11 @@ function formatTransaction(doc) {
 }
 
 // Get all transactions for a user
-router.get('/', authenticateToken, async (req, res) => {
+router.get("/", authenticateToken, async (req, res) => {
   try {
     const results = await Transaction.find({ user: req.user.id }).populate(
-      'category',
-      'name type color'
+      "category",
+      "name type color",
     );
     res.json(results.map(formatTransaction));
   } catch (error) {
@@ -33,7 +33,7 @@ router.get('/', authenticateToken, async (req, res) => {
 });
 
 // Get transaction summary
-router.get('/summary', authenticateToken, async (req, res) => {
+router.get("/summary", authenticateToken, async (req, res) => {
   try {
     const { startDate, endDate } = req.query;
 
@@ -46,15 +46,15 @@ router.get('/summary', authenticateToken, async (req, res) => {
       },
       {
         $group: {
-          _id: '$type',
-          total_amount: { $sum: '$amount' },
+          _id: "$type",
+          total_amount: { $sum: "$amount" },
           transaction_count: { $sum: 1 },
         },
       },
       {
         $project: {
           _id: 0,
-          type: '$_id',
+          type: "$_id",
           total_amount: 1,
           transaction_count: 1,
         },
@@ -68,7 +68,7 @@ router.get('/summary', authenticateToken, async (req, res) => {
 });
 
 // Create a new transaction
-router.post('/', authenticateToken, async (req, res) => {
+router.post("/", authenticateToken, async (req, res) => {
   try {
     const { category_id, amount, description, date, type } = req.body;
 
@@ -81,7 +81,10 @@ router.post('/', authenticateToken, async (req, res) => {
       type,
     });
 
-    const newTransaction = await created.populate('category', 'name type color');
+    const newTransaction = await created.populate(
+      "category",
+      "name type color",
+    );
 
     res.status(201).json(formatTransaction(newTransaction));
   } catch (error) {
@@ -90,18 +93,18 @@ router.post('/', authenticateToken, async (req, res) => {
 });
 
 // Update a transaction
-router.put('/:id', authenticateToken, async (req, res) => {
+router.put("/:id", authenticateToken, async (req, res) => {
   try {
     const { category_id, amount, description, date, type } = req.body;
 
     const updatedTransaction = await Transaction.findOneAndUpdate(
       { _id: req.params.id, user: req.user.id },
       { category: category_id || null, amount, description, date, type },
-      { new: true, runValidators: true }
-    ).populate('category', 'name type color');
+      { new: true, runValidators: true },
+    ).populate("category", "name type color");
 
     if (!updatedTransaction) {
-      return res.status(404).json({ error: 'Transaction not found' });
+      return res.status(404).json({ error: "Transaction not found" });
     }
 
     res.json(formatTransaction(updatedTransaction));
@@ -111,15 +114,15 @@ router.put('/:id', authenticateToken, async (req, res) => {
 });
 
 // Delete a transaction
-router.delete('/:id', authenticateToken, async (req, res) => {
+router.delete("/:id", authenticateToken, async (req, res) => {
   try {
     const transaction = await Transaction.findOneAndDelete({
       _id: req.params.id,
       user: req.user.id,
-    }).populate('category', 'name type color');
+    }).populate("category", "name type color");
 
     if (!transaction) {
-      return res.status(404).json({ error: 'Transaction not found' });
+      return res.status(404).json({ error: "Transaction not found" });
     }
 
     res.json(formatTransaction(transaction));

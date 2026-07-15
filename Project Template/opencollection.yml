@@ -2,6 +2,22 @@ opencollection: 1.0.0
 
 info:
   name: Project Template
+config:
+  proxy:
+    inherit: true
+    config:
+      protocol: http
+      hostname: ""
+      port: ""
+      auth:
+        username: ""
+        password: ""
+      bypassProxy: ""
+
+request:
+  auth:
+    type: bearer
+    token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhNTdjNGVjMmY1MmIyZTkzZTg3NGFlNiIsImlhdCI6MTc4NDEzNjk0MCwiZXhwIjoxNzg0MjIzMzQwfQ.Z4yRvlIMKLHdONsR_CskySO7IolpIORV6ka8EeXygPM
 bundled: false
 extensions:
   bruno:

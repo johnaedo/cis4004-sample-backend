@@ -19,9 +19,7 @@ export const authenticateToken = async (req, res, next) => {
         process.env.JWT_SECRET || "your-secret-key",
       );
 
-      const user = await User.findById(decoded.id).select(
-        "id username email",
-      );
+      const user = await User.findById(decoded.id).select("id username email");
 
       if (!user) {
         req.user = null;

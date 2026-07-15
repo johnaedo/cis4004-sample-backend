@@ -1,8 +1,8 @@
-import express from 'express';
-import mongoose from 'mongoose';
-import Budget from '../models/Budget.js';
-import Transaction from '../models/Transaction.js';
-import { authenticateToken } from '../middleware/auth.js';
+import express from "express";
+import mongoose from "mongoose";
+import Budget from "../models/Budget.js";
+import Transaction from "../models/Transaction.js";
+import { authenticateToken } from "../middleware/auth.js";
 
 const router = express.Router();
 
@@ -21,11 +21,11 @@ function formatBudget(doc) {
 }
 
 // Get all budgets for a user
-router.get('/', authenticateToken, async (req, res) => {
+router.get("/", authenticateToken, async (req, res) => {
   try {
     const results = await Budget.find({ user: req.user.id }).populate(
-      'category',
-      'name type color'
+      "category",
+      "name type color",
     );
     res.json(results.map(formatBudget));
   } catch (error) {
@@ -34,7 +34,7 @@ router.get('/', authenticateToken, async (req, res) => {
 });
 
 // Get budget summary
-router.get('/summary', authenticateToken, async (req, res) => {
+router.get("/summary", authenticateToken, async (req, res) => {
   try {
     const { startDate, endDate } = req.query;
     const start = new Date(startDate);
@@ -56,48 +56,48 @@ router.get('/summary', authenticateToken, async (req, res) => {
       },
       {
         $lookup: {
-          from: 'categories',
-          localField: 'category',
-          foreignField: '_id',
-          as: 'category',
+          from: "categories",
+          localField: "category",
+          foreignField: "_id",
+          as: "category",
         },
       },
-      { $unwind: '$category' },
+      { $unwind: "$category" },
       {
         $lookup: {
-          from: 'transactions',
-          let: { categoryId: '$category._id' },
+          from: "transactions",
+          let: { categoryId: "$category._id" },
           pipeline: [
             {
               $match: {
                 $expr: {
                   $and: [
-                    { $eq: ['$category', '$$categoryId'] },
-                    { $eq: ['$user', userId] },
-                    { $gte: ['$date', start] },
-                    { $lte: ['$date', end] },
+                    { $eq: ["$category", "$$categoryId"] },
+                    { $eq: ["$user", userId] },
+                    { $gte: ["$date", start] },
+                    { $lte: ["$date", end] },
                   ],
                 },
               },
             },
           ],
-          as: 'matchingTransactions',
+          as: "matchingTransactions",
         },
       },
       {
         $addFields: {
-          spent_amount: { $sum: '$matchingTransactions.amount' },
+          spent_amount: { $sum: "$matchingTransactions.amount" },
         },
       },
       {
         $project: {
           _id: 0,
-          id: '$_id',
-          category_id: '$category._id',
-          category_name: '$category.name',
-          category_type: '$category.type',
-          category_color: '$category.color',
-          budget_amount: '$amount',
+          id: "$_id",
+          category_id: "$category._id",
+          category_name: "$category.name",
+          category_type: "$category.type",
+          category_color: "$category.color",
+          budget_amount: "$amount",
           spent_amount: 1,
         },
       },
@@ -108,33 +108,33 @@ router.get('/summary', authenticateToken, async (req, res) => {
       ...budget,
       status:
         budget.spent_amount > budget.budget_amount
-          ? 'over'
+          ? "over"
           : budget.spent_amount > budget.budget_amount * 0.9
-          ? 'warning'
-          : 'healthy',
+            ? "warning"
+            : "healthy",
     }));
 
     res.json(budgetsWithStatus);
   } catch (error) {
-    console.error('Budget summary error:', error);
+    console.error("Budget summary error:", error);
     res.status(500).json({ error: error.message });
   }
 });
 
 // Create a new budget
-router.post('/', authenticateToken, async (req, res) => {
+router.post("/", authenticateToken, async (req, res) => {
   try {
-    const { category_id, amount, start_date, end_date } = req.body;
+    const { category_id, amount, startDate, endDate } = req.body;
 
     const created = await Budget.create({
       user: req.user.id,
       category: category_id,
       amount,
-      startDate: start_date,
-      endDate: end_date,
+      startDate: startDate,
+      endDate: endDate,
     });
 
-    const newBudget = await created.populate('category', 'name type color');
+    const newBudget = await created.populate("category", "name type color");
 
     res.status(201).json(formatBudget(newBudget));
   } catch (error) {
@@ -143,23 +143,23 @@ router.post('/', authenticateToken, async (req, res) => {
 });
 
 // Update a budget
-router.put('/:id', authenticateToken, async (req, res) => {
+router.put("/:id", authenticateToken, async (req, res) => {
   try {
-    const { category_id, amount, start_date, end_date } = req.body;
+    const { category_id, amount, startDate, endDate } = req.body;
 
     const updatedBudget = await Budget.findOneAndUpdate(
       { _id: req.params.id, user: req.user.id },
       {
         category: category_id,
         amount,
-        startDate: start_date,
-        endDate: end_date,
+        startDate: startDate,
+        endDate: endDate,
       },
-      { new: true, runValidators: true }
-    ).populate('category', 'name type color');
+      { new: true, runValidators: true },
+    ).populate("category", "name type color");
 
     if (!updatedBudget) {
-      return res.status(404).json({ error: 'Budget not found' });
+      return res.status(404).json({ error: "Budget not found" });
     }
 
     res.json(formatBudget(updatedBudget));
@@ -169,15 +169,15 @@ router.put('/:id', authenticateToken, async (req, res) => {
 });
 
 // Delete a budget
-router.delete('/:id', authenticateToken, async (req, res) => {
+router.delete("/:id", authenticateToken, async (req, res) => {
   try {
     const budget = await Budget.findOneAndDelete({
       _id: req.params.id,
       user: req.user.id,
-    }).populate('category', 'name type color');
+    }).populate("category", "name type color");
 
     if (!budget) {
-      return res.status(404).json({ error: 'Budget not found' });
+      return res.status(404).json({ error: "Budget not found" });
     }
 
     res.json(formatBudget(budget));
@@ -187,16 +187,16 @@ router.delete('/:id', authenticateToken, async (req, res) => {
 });
 
 // Get transactions for a specific budget period
-router.get('/:id/transactions', authenticateToken, async (req, res) => {
+router.get("/:id/transactions", authenticateToken, async (req, res) => {
   try {
     // First get the budget details
     const budget = await Budget.findOne({
       _id: req.params.id,
       user: req.user.id,
-    }).populate('category', 'name type color');
+    }).populate("category", "name type color");
 
     if (!budget) {
-      return res.status(404).json({ error: 'Budget not found' });
+      return res.status(404).json({ error: "Budget not found" });
     }
 
     // Get transactions for the budget period, grouped by day
@@ -209,12 +209,12 @@ router.get('/:id/transactions', authenticateToken, async (req, res) => {
       },
       {
         $group: {
-          _id: '$date',
+          _id: "$date",
           income: {
-            $sum: { $cond: [{ $eq: ['$type', 'income'] }, '$amount', 0] },
+            $sum: { $cond: [{ $eq: ["$type", "income"] }, "$amount", 0] },
           },
           expenses: {
-            $sum: { $cond: [{ $eq: ['$type', 'expense'] }, '$amount', 0] },
+            $sum: { $cond: [{ $eq: ["$type", "expense"] }, "$amount", 0] },
           },
         },
       },
@@ -234,7 +234,7 @@ router.get('/:id/transactions', authenticateToken, async (req, res) => {
       transactions: dailyData,
     });
   } catch (error) {
-    console.error('Budget transactions error:', error);
+    console.error("Budget transactions error:", error);
     res.status(500).json({ error: error.message });
   }
 });
