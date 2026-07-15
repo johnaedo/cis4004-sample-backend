@@ -1,6 +1,6 @@
 // server/middleware/auth.js
 import jwt from "jsonwebtoken";
-import { pool } from "../config/database.js";
+import User from "../models/User.js";
 
 export const authenticateToken = async (req, res, next) => {
   try {
@@ -19,20 +19,24 @@ export const authenticateToken = async (req, res, next) => {
         process.env.JWT_SECRET || "your-secret-key",
       );
 
-      const [rows] = await pool.query(
-        "SELECT id, username, email FROM users WHERE id = ?",
-        [decoded.id],
+      const user = await User.findById(decoded.id).select(
+        "id username email",
       );
 
-      if (!rows || rows.length === 0) {
+      if (!user) {
         req.user = null;
         return next();
       }
 
-      req.user = rows[0];
+      req.user = {
+        id: user._id.toString(),
+        username: user.username,
+        email: user.email,
+      };
       next();
     } catch (jwtError) {
-      // If token is invalid, continue without user
+      // Covers both invalid/expired JWTs and a malformed decoded.id that
+      // can't be cast to a Mongo ObjectId - either way, continue without a user
       console.log("JWT verification error:", jwtError);
       req.user = null;
       next();

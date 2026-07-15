@@ -1,57 +1,27 @@
-import mysql from "mysql2/promise";
-// import "./dotenv.js";
-import "./dotenv.js";
-const isProduction = process.env.NODE_ENV === "production";
+// server/config/database.js
+import mongoose from "mongoose";
+import './dotenv.js';
 
-const getConnectionConfig = () => {
-  const config = {
-    host: process.env.DB_HOST || "localhost",
-    user: process.env.DB_USER || "budget_user",
-    database: process.env.DB_NAME || "budget_planner",
-    port: parseInt(process.env.DB_PORT) || "3306",
-    password: process.env.DB_PASSWORD || "budget",
-  };
-  console.table(config);
+mongoose.set("strictQuery", true);
 
-  // Only add password if it's set
-  /*
-  if (process.env.DB_PASSWORD !== undefined) {
-    config.password = process.env.DB_PASSWORD;
-  }
-  */
-  // Add SSL for production
-  if (isProduction) {
-    config.ssl = {
-      rejectUnauthorized: false,
-    };
+export async function connectDB() {
+  const uri = process.env.MONGODB_URI;
+
+  if (!uri) {
+    throw new Error("MONGODB_URI is not defined in the environment");
   }
 
-  return config;
-};
+  await mongoose.connect(uri);
+  console.log(`🗄️  MongoDB connected: ${mongoose.connection.host}/${mongoose.connection.name}`);
+}
 
-// Create connection pool
-const pool = mysql.createPool({
-  ...getConnectionConfig(),
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0,
+mongoose.connection.on("error", (err) => {
+  console.error("MongoDB connection error:", err);
 });
 
-// Test database connection
-const testConnection = async () => {
-  try {
-    const connection = await pool.getConnection();
-    console.log(
-      `Database connected successfully to ${
-        isProduction ? "production" : "local"
-      } instance`,
-    );
-    connection.release();
-  } catch (err) {
-    console.error("Database connection error:", err);
-  }
-};
+mongoose.connection.on("disconnected", () => {
+  console.log("MongoDB disconnected");
+});
 
-testConnection();
-
-export { pool };
+export { mongoose };
+export default mongoose;

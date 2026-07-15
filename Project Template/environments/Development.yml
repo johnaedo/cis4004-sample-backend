@@ -1,0 +1,4 @@
+name: Development
+variables:
+  - name: baseUrl
+    value: http://localhost:4001/api/
