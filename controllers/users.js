@@ -1,7 +1,7 @@
 // server/controllers/users.js
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { pool } from "../config/database.js";
+import User from "../models/User.js";
 
 const UsersController = {
   registerUser: async (req, res) => {
@@ -13,32 +13,31 @@ const UsersController = {
       const password_hash = await bcrypt.hash(password, salt);
 
       // Create user
-      const [userResult] = await pool.query(
-        "INSERT INTO users (username, email, password_hash) VALUES (?, ?, ?)",
-        [username, email, password_hash]
-      );
-
-      // Get the created user
-      const [user] = await pool.query(
-        "SELECT id, username, email FROM users WHERE id = ?",
-        [userResult.insertId]
-      );
+      const user = await User.create({
+        username,
+        email,
+        password: password_hash,
+      });
 
       // Generate JWT
       const token = jwt.sign(
-        { id: userResult.insertId },
+        { id: user._id },
         process.env.JWT_SECRET || "your-secret-key",
-        { expiresIn: "24h" }
+        { expiresIn: "24h" },
       );
 
       res.status(201).json({
-        user: user[0],
+        user: {
+          id: user._id,
+          username: user.username,
+          email: user.email,
+        },
         token,
       });
     } catch (error) {
       console.error("Registration error:", error);
-      if (error.code === "ER_DUP_ENTRY") {
-        // Unique violation
+      if (error.code === 11000) {
+        // Duplicate key violation (unique index on username or email)
         res.status(400).json({ error: "Username or email already exists" });
       } else {
         res.status(500).json({ error: error.message });
@@ -52,38 +51,31 @@ const UsersController = {
     try {
       // Check if identifier is an email
       const isEmail = /\S+@\S+\.\S+/.test(identifier);
-      let userQuery, userParams;
+      const lookup = isEmail ? { email: identifier } : { username: identifier };
 
-      if (isEmail) {
-        userQuery = "SELECT * FROM users WHERE email = ?";
-        userParams = [identifier];
-      } else {
-        userQuery = "SELECT * FROM users WHERE username = ?";
-        userParams = [identifier];
-      }
+      // password has `select: false` in the schema, so it must be
+      // explicitly requested here
+      const user = await User.findOne(lookup).select("+password");
 
-      const [results] = await pool.query(userQuery, userParams);
-
-      if (results.length === 0) {
+      if (!user) {
         return res.status(401).json({ error: "Invalid credentials" });
       }
 
-      const user = results[0];
-      const validPassword = await bcrypt.compare(password, user.password_hash);
+      const validPassword = await bcrypt.compare(password, user.password);
 
       if (!validPassword) {
         return res.status(401).json({ error: "Invalid credentials" });
       }
 
       const token = jwt.sign(
-        { id: user.id },
+        { id: user._id },
         process.env.JWT_SECRET || "your-secret-key",
-        { expiresIn: "24h" }
+        { expiresIn: "24h" },
       );
 
       res.json({
         user: {
-          id: user.id,
+          id: user._id,
           username: user.username,
           email: user.email,
         },
@@ -101,44 +93,36 @@ const UsersController = {
       const userId = req.user.id;
 
       // First verify the current password
-      const [userResult] = await pool.query(
-        "SELECT password_hash FROM users WHERE id = ?",
-        [userId]
-      );
+      const user = await User.findById(userId).select("+password");
 
-      if (!userResult.length) {
+      if (!user) {
         return res.status(404).json({ error: "User not found" });
       }
 
       const validPassword = await bcrypt.compare(
         currentPassword,
-        userResult[0].password_hash
+        user.password,
       );
 
       if (!validPassword) {
         return res.status(401).json({ error: "Current password is incorrect" });
       }
 
-      // Update the user profile
-      await pool.query(
-        `UPDATE users 
-            SET username = COALESCE(?, username),
-                email = COALESCE(?, email)
-            WHERE id = ?`,
-        [username, email, userId]
-      );
+      // Update the user profile - only overwrite fields that were provided,
+      // equivalent to the old SQL COALESCE(?, username)/COALESCE(?, email)
+      if (username !== undefined) user.username = username;
+      if (email !== undefined) user.email = email;
+      await user.save();
 
-      // Get updated user
-      const [updatedUser] = await pool.query(
-        "SELECT id, username, email FROM users WHERE id = ?",
-        [userId]
-      );
-
-      res.json(updatedUser[0]);
+      res.json({
+        id: user._id,
+        username: user.username,
+        email: user.email,
+      });
     } catch (error) {
       console.error("Error updating profile:", error);
-      if (error.code === "ER_DUP_ENTRY") {
-        // Unique violation
+      if (error.code === 11000) {
+        // Duplicate key violation (unique index on username or email)
         res.status(400).json({ error: "Username or email already exists" });
       } else {
         res.status(500).json({ error: error.message });
@@ -148,15 +132,24 @@ const UsersController = {
 
   getUserProfile: async (req, res) => {
     try {
-      const [results] = await pool.query(
-        "SELECT id, username, email, created_at FROM users WHERE id = ?",
-        [req.user.id]
+      const user = await User.findById(req.user.id).select(
+        "id username email createdAt",
       );
-      res.json(results[0]);
+
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      res.json({
+        id: user._id,
+        username: user.username,
+        email: user.email,
+        created_at: user.createdAt,
+      });
     } catch (error) {
       res.status(500).json({ error: error.message });
     }
-  }
+  },
 };
 
 export default UsersController;

@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">57.57% </span>
+                <span class="strong">48.71% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>19/33</span>
+                <span class='fraction'>19/39</span>
             </div>
         
             
@@ -37,16 +37,16 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">16.66% </span>
+                <span class="strong">11.11% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>1/6</span>
+                <span class='fraction'>1/9</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">57.57% </span>
+                <span class="strong">48.71% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>19/33</span>
+                <span class='fraction'>19/39</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line medium'></div>
+    <div class='status-line low'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -160,7 +160,25 @@
 <a name='L95'></a><a href='#L95'>95</a>
 <a name='L96'></a><a href='#L96'>96</a>
 <a name='L97'></a><a href='#L97'>97</a>
-<a name='L98'></a><a href='#L98'>98</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L98'></a><a href='#L98'>98</a>
+<a name='L99'></a><a href='#L99'>99</a>
+<a name='L100'></a><a href='#L100'>100</a>
+<a name='L101'></a><a href='#L101'>101</a>
+<a name='L102'></a><a href='#L102'>102</a>
+<a name='L103'></a><a href='#L103'>103</a>
+<a name='L104'></a><a href='#L104'>104</a>
+<a name='L105'></a><a href='#L105'>105</a>
+<a name='L106'></a><a href='#L106'>106</a>
+<a name='L107'></a><a href='#L107'>107</a>
+<a name='L108'></a><a href='#L108'>108</a>
+<a name='L109'></a><a href='#L109'>109</a>
+<a name='L110'></a><a href='#L110'>110</a>
+<a name='L111'></a><a href='#L111'>111</a>
+<a name='L112'></a><a href='#L112'>112</a>
+<a name='L113'></a><a href='#L113'>113</a>
+<a name='L114'></a><a href='#L114'>114</a>
+<a name='L115'></a><a href='#L115'>115</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -218,9 +236,16 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">9x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">9x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -237,6 +262,10 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -248,6 +277,11 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -263,6 +297,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
 import "./config/dotenv.js";
+import { connectDB, mongoose } from "./config/database.js";
 import usersRouter from "./routes/users.js";
 import categoriesRouter from "./routes/categories.js";
 import transactionsRouter from "./routes/transactions.js";
@@ -285,7 +320,7 @@ app.use(
     origin:
       process.env.NODE_ENV === "production"
         ? process.env.CLIENT_URL || "https://your-app-name.railway.app"
-        : "http://localhost:8080",
+        : "http://localhost:8888",
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
@@ -314,40 +349,56 @@ const PORT = process.env.PORT || 3001;
 // Only start listening when this file is run directly (e.g. `node server.js`
 // or `npm start`). When it's imported by Jest/Supertest via require("./server.js"),
 // this block is skipped, so tests don't open a real TCP handle that never closes.
+// (Tests should connect to their own test/in-memory database separately -
+// e.g. in a Jest globalSetup/beforeAll - rather than relying on this block.)
 const isMainModule =
   process.argv[1] &amp;&amp; import.meta.url === `file://${process.argv[1]}`;
 &nbsp;
 <span class="missing-if-branch" title="if path not taken" >I</span>if (isMainModule) {
-  const server = <span class="cstat-no" title="statement not covered" >app.listen(PORT, <span class="fstat-no" title="function not covered" >()</span> =&gt; {</span>
-<span class="cstat-no" title="statement not covered" >    console.log(</span>
-      `🚀 Server running in ${
-        process.env.NODE_ENV || "development"
-      } mode on port ${PORT}`,
-    );
-<span class="cstat-no" title="statement not covered" >    if (process.env.NODE_ENV === "production") {</span>
-<span class="cstat-no" title="statement not covered" >      console.log("🌐 Serving static files from React build");</span>
-    }
-  });
+  // Connect to MongoDB before accepting any traffic. If the DB is
+  // unreachable, fail fast instead of starting a server that can't serve
+  // any real request.
+<span class="cstat-no" title="statement not covered" >  connectDB()</span>
+    .then(<span class="fstat-no" title="function not covered" >()</span> =&gt; {
+      const server = <span class="cstat-no" title="statement not covered" >app.listen(PORT, <span class="fstat-no" title="function not covered" >()</span> =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >        console.log(</span>
+          `🚀 Server running in ${
+            process.env.NODE_ENV || "development"
+          } mode on port ${PORT}`,
+        );
+<span class="cstat-no" title="statement not covered" >        if (process.env.NODE_ENV === "production") {</span>
+<span class="cstat-no" title="statement not covered" >          console.log("🌐 Serving static files from React build");</span>
+        }
+      });
 &nbsp;
-  // Graceful shutdown
-<span class="cstat-no" title="statement not covered" >  process.on("SIGTERM", <span class="fstat-no" title="function not covered" >()</span> =&gt; {</span>
-<span class="cstat-no" title="statement not covered" >    console.log("SIGTERM signal received: closing HTTP server");</span>
-<span class="cstat-no" title="statement not covered" >    server.close(<span class="fstat-no" title="function not covered" >()</span> =&gt; {</span>
-<span class="cstat-no" title="statement not covered" >      console.log("HTTP server closed");</span>
+      // Graceful shutdown
+<span class="cstat-no" title="statement not covered" >      process.on("SIGTERM", <span class="fstat-no" title="function not covered" >()</span> =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >        console.log("SIGTERM signal received: closing HTTP server");</span>
+<span class="cstat-no" title="statement not covered" >        server.close(<span class="fstat-no" title="function not covered" >()</span> =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >          console.log("HTTP server closed");</span>
+<span class="cstat-no" title="statement not covered" >          mongoose.connection.close(false).then(<span class="fstat-no" title="function not covered" >()</span> =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >            console.log("MongoDB connection closed");</span>
+<span class="cstat-no" title="statement not covered" >            process.exit(0);</span>
+          });
+        });
+      });
+&nbsp;
+      // Handle uncaught exceptions
+<span class="cstat-no" title="statement not covered" >      process.on("uncaughtException", <span class="fstat-no" title="function not covered" >(e</span>rr) =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >        console.error("Uncaught Exception:", err);</span>
+<span class="cstat-no" title="statement not covered" >        process.exit(1);</span>
+      });
+&nbsp;
+      // Handle unhandled promise rejections
+<span class="cstat-no" title="statement not covered" >      process.on("unhandledRejection", <span class="fstat-no" title="function not covered" >(e</span>rr) =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >        console.error("Unhandled Rejection:", err);</span>
+<span class="cstat-no" title="statement not covered" >        process.exit(1);</span>
+      });
+    })
+    .catch(<span class="fstat-no" title="function not covered" >(e</span>rror) =&gt; {
+<span class="cstat-no" title="statement not covered" >      console.error("❌ Failed to connect to MongoDB - server not started:", error);</span>
+<span class="cstat-no" title="statement not covered" >      process.exit(1);</span>
     });
-  });
-&nbsp;
-  // Handle uncaught exceptions
-<span class="cstat-no" title="statement not covered" >  process.on("uncaughtException", <span class="fstat-no" title="function not covered" >(e</span>rr) =&gt; {</span>
-<span class="cstat-no" title="statement not covered" >    console.error("Uncaught Exception:", err);</span>
-<span class="cstat-no" title="statement not covered" >    process.exit(1);</span>
-  });
-&nbsp;
-  // Handle unhandled promise rejections
-<span class="cstat-no" title="statement not covered" >  process.on("unhandledRejection", <span class="fstat-no" title="function not covered" >(e</span>rr) =&gt; {</span>
-<span class="cstat-no" title="statement not covered" >    console.error("Unhandled Rejection:", err);</span>
-<span class="cstat-no" title="statement not covered" >    process.exit(1);</span>
-  });
 }
 &nbsp;
 <span class="missing-if-branch" title="else path not taken" >E</span>if (typeof module !== "undefined" &amp;&amp; module.exports) {
@@ -361,7 +412,7 @@ export default app; // For production ES Module usage
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-07-08T15:30:43.319Z
+                at 2026-07-15T12:30:09.529Z
             </div>
         <script src="../prettify.js"></script>
         <script>

@@ -163,26 +163,26 @@ describe("CORS – development mode", () => {
   let app;
   beforeAll(() => (app = buildApp({ env: "development" })));
 
-  it("allows requests from http://localhost:8080", async () => {
+  it("allows requests from http://localhost:8888", async () => {
     const res = await request(app)
       .get("/api")
-      .set("Origin", "http://localhost:8080");
+      .set("Origin", "http://localhost:8888");
     expect(res.headers["access-control-allow-origin"]).toBe(
-      "http://localhost:8080",
+      "http://localhost:8888",
     );
   });
 
   it("includes credentials header", async () => {
     const res = await request(app)
       .get("/api")
-      .set("Origin", "http://localhost:8080");
+      .set("Origin", "http://localhost:8888");
     expect(res.headers["access-control-allow-credentials"]).toBe("true");
   });
 
   it("handles preflight OPTIONS requests", async () => {
     const res = await request(app)
       .options("/api/users")
-      .set("Origin", "http://localhost:8080")
+      .set("Origin", "http://localhost:8888")
       .set("Access-Control-Request-Method", "POST")
       .set("Access-Control-Request-Headers", "Content-Type,Authorization");
     expect([200, 204]).toContain(res.status);
