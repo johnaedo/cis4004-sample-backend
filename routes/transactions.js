@@ -5,8 +5,12 @@ import { authenticateToken } from "../middleware/auth.js";
 
 const router = express.Router();
 
-// Flatten a populated transaction doc so category fields look like the old
-// SQL joined response (category_name, category_type, category_color).
+// This function is required due to the mySQL->MongoDB migration.
+// The client is expecting data formatted as if it came from mySQL,
+// so rather than refactor the front-end entirely, we just reformat
+// the data that we get from MongoDB:
+//  Flatten a populated transaction doc so category fields look like the old
+//  SQL joined response (category_name, category_type, category_color).
 function formatTransaction(doc) {
   const obj = doc.toObject ? doc.toObject() : doc;
   const { category, ...rest } = obj;

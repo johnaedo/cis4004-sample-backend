@@ -1,10 +1,9 @@
 export const checkRequiredEnv = () => {
     const required = [
       'NODE_ENV',
-      'DB_HOST',
-      'DB_NAME',
-      'DB_PORT',
-      'JWT_SECRET'
+      'MONGODB_URI',
+      'JWT_SECRET',
+      'PORT'
     ];
 
     const missing = required.filter(key => !process.env[key]);
@@ -16,10 +15,7 @@ export const checkRequiredEnv = () => {
 
     // Check database configuration
     const dbConfigured = !!(
-      process.env.DB_HOST &&
-      process.env.DB_PORT &&
-      process.env.DB_NAME &&
-      process.env.DB_PASSWORD
+      process.env.MONGODB_URI
     );
 
     if (!dbConfigured) {
@@ -28,6 +24,6 @@ export const checkRequiredEnv = () => {
     }
 
     console.log('Environment check passed');
-    console.log(`Database host: ${process.env.DB_HOST}`);
+    console.log(`MongoDB URI: ${process.env.MONGODB_URI}`);
     console.log('Environment:', process.env.NODE_ENV);
   };

@@ -91,8 +91,7 @@ router.get("/summary", authenticateToken, async (req, res) => {
       },
       {
         $project: {
-          _id: 0,
-          id: "$_id",
+          _id: 1,
           category_id: "$category._id",
           category_name: "$category.name",
           category_type: "$category.type",
