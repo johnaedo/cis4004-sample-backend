@@ -2,9 +2,6 @@ name: Deploy with systemd
 
 on:
   workflow_dispatch: # Allows manual trigger for class demo
-  push:
-    branches:
-      - master
 
 jobs:
   build-and-test:
@@ -28,7 +25,7 @@ jobs:
   deploy-systemd:
     needs: build-and-test
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/master' || github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'workflow_dispatch'
     steps:
       - name: Deploy via SSH (systemd)
         uses: appleboy/ssh-action@v1.0.3
