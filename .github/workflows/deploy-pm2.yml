@@ -41,7 +41,7 @@ jobs:
           key: ${{ secrets.DROPLET_SSH_KEY }}
           port: 22
           script: |
-            cd /home/budget-planner/server
+            cd /home/mern/server
             git fetch origin
             git checkout master
             git pull origin master
