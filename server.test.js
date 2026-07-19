@@ -1,59 +1,61 @@
 /**
- * Comprehensive Jest tests for server.js
+ * Comprehensive Vitest tests for server.js
  *
  * Dependencies (install before running):
- *   npm install --save-dev jest supertest
+ *   npm install --save-dev vitest supertest
  *
  * Run with:
- *   npx jest server.test.js
+ *   npx vitest run server.test.js
  *
  * The router modules (users, categories, transactions, budgets) are mocked
  * so these tests exercise only server.js behaviour: routing, CORS, error
  * handling, static-file serving, and environment-aware logic.
  */
 
+import { describe, it, expect, beforeAll, afterAll, vi } from "vitest";
 import request from "supertest";
-import express from "express";
 
 // ---------------------------------------------------------------------------
-// Mock every import that lives outside server.js
+// Mock every import that lives outside server.js (using modern ESM hoisting)
 // ---------------------------------------------------------------------------
 
 // Silence checkRequiredEnv so the server can boot without real env vars
-jest.mock("./config/check-env.js", () => ({
-  checkRequiredEnv: jest.fn(),
+vi.mock("./config/check-env.js", () => ({
+  checkRequiredEnv: vi.fn(),
 }));
 
 // Silence dotenv config
-jest.mock("./config/dotenv.js", () => {});
+vi.mock("./config/dotenv.js", () => ({}));
 
 // Each router is a minimal Express Router that exposes one GET "/" so we can
 // verify the correct mount path is reached.
-jest.mock("./routes/users.js", () => {
-  const router = require("express").Router();
+vi.mock("./routes/users.js", async () => {
+  const express = await import("express");
+  const router = express.default.Router();
   router.get("/", (_req, res) => res.status(200).json({ route: "users" }));
   router.post("/", (_req, res) => res.status(201).json({ route: "users" }));
-  return router;
+  return { default: router };
 });
 
-jest.mock("./routes/categories.js", () => {
-  const router = require("express").Router();
+vi.mock("./routes/categories.js", async () => {
+  const express = await import("express");
+  const router = express.default.Router();
   router.get("/", (_req, res) => res.status(200).json({ route: "categories" }));
-  return router;
+  return { default: router };
 });
 
-jest.mock("./routes/transactions.js", () => {
-  const router = require("express").Router();
-  router.get("/", (_req, res) =>
-    res.status(200).json({ route: "transactions" }),
-  );
-  return router;
+vi.mock("./routes/transactions.js", async () => {
+  const express = await import("express");
+  const router = express.default.Router();
+  router.get("/", (_req, res) => res.status(200).json({ route: "transactions" }));
+  return { default: router };
 });
 
-jest.mock("./routes/budgets.js", () => {
-  const router = require("express").Router();
+vi.mock("./routes/budgets.js", async () => {
+  const express = await import("express");
+  const router = express.default.Router();
   router.get("/", (_req, res) => res.status(200).json({ route: "budgets" }));
-  return router;
+  return { default: router };
 });
 
 // ---------------------------------------------------------------------------
@@ -66,7 +68,7 @@ jest.mock("./routes/budgets.js", () => {
  * Pass `{ env: "production", clientUrl: "https://example.com" }` to test
  * production-specific branches.
  */
-function buildApp({ env = "development", clientUrl } = {}) {
+async function buildApp({ env = "development", clientUrl } = {}) {
   const savedEnv = process.env.NODE_ENV;
   const savedClientUrl = process.env.CLIENT_URL;
 
@@ -74,12 +76,12 @@ function buildApp({ env = "development", clientUrl } = {}) {
   if (clientUrl) process.env.CLIENT_URL = clientUrl;
   else delete process.env.CLIENT_URL;
 
-  // Re-require so the module picks up the updated env vars.
-  // Jest module registry must be cleared between env switches.
-  jest.resetModules();
+  // Vitest's clean ESM-compliant module cache reset
+  vi.resetModules();
 
-  const mod = require("./server.js");
-  const app = mod.default || mod;
+  // Dynamically import the ES module server file
+  const mod = await import("./server.js");
+  const app = mod.default;
 
   // Restore env for subsequent tests
   process.env.NODE_ENV = savedEnv;
@@ -95,7 +97,9 @@ function buildApp({ env = "development", clientUrl } = {}) {
 
 describe("GET /api – welcome route", () => {
   let app;
-  beforeAll(() => (app = buildApp()));
+  beforeAll(async () => {
+    app = await buildApp();
+  });
 
   it("returns 200 and the welcome HTML", async () => {
     const res = await request(app).get("/api");
@@ -107,7 +111,9 @@ describe("GET /api – welcome route", () => {
 // ---------------------------------------------------------------------------
 describe("Router mounts", () => {
   let app;
-  beforeAll(() => (app = buildApp()));
+  beforeAll(async () => {
+    app = await buildApp();
+  });
 
   it("mounts users router at /api/users", async () => {
     const res = await request(app).get("/api/users");
@@ -143,7 +149,9 @@ describe("Router mounts", () => {
 // ---------------------------------------------------------------------------
 describe("404 handling – development mode", () => {
   let app;
-  beforeAll(() => (app = buildApp({ env: "development" })));
+  beforeAll(async () => {
+    app = await buildApp({ env: "development" });
+  });
 
   it("returns 404 JSON for unknown /api/* paths", async () => {
     const res = await request(app).get("/api/does-not-exist");
@@ -161,7 +169,9 @@ describe("404 handling – development mode", () => {
 // ---------------------------------------------------------------------------
 describe("CORS – development mode", () => {
   let app;
-  beforeAll(() => (app = buildApp({ env: "development" })));
+  beforeAll(async () => {
+    app = await buildApp({ env: "development" });
+  });
 
   it("allows requests from http://localhost:8888", async () => {
     const res = await request(app)
@@ -193,9 +203,9 @@ describe("CORS – development mode", () => {
 describe("CORS – production mode (CLIENT_URL set)", () => {
   let app;
   const PROD_ORIGIN = "https://my-budget-app.railway.app";
-  beforeAll(
-    () => (app = buildApp({ env: "production", clientUrl: PROD_ORIGIN })),
-  );
+  beforeAll(async () => {
+    app = await buildApp({ env: "production", clientUrl: PROD_ORIGIN });
+  });
 
   it("allows requests from the configured CLIENT_URL", async () => {
     const res = await request(app).get("/api").set("Origin", PROD_ORIGIN);
@@ -206,7 +216,9 @@ describe("CORS – production mode (CLIENT_URL set)", () => {
 // ---------------------------------------------------------------------------
 describe("CORS – production mode (CLIENT_URL absent)", () => {
   let app;
-  beforeAll(() => (app = buildApp({ env: "production" })));
+  beforeAll(async () => {
+    app = await buildApp({ env: "production" });
+  });
 
   it("falls back to the default railway origin", async () => {
     const res = await request(app)
@@ -220,18 +232,17 @@ describe("CORS – production mode (CLIENT_URL absent)", () => {
 
 // ---------------------------------------------------------------------------
 describe("Error-handling middleware", () => {
-  // Build a throwable app by adding test-only routes that trigger specific
-  // errors before the generic error handler.
-  beforeAll(() => jest.spyOn(console, "error").mockImplementation(() => {}));
-  afterAll(() => console.error.mockRestore());
+  beforeAll(() => vi.spyOn(console, "error").mockImplementation(() => {}));
+  afterAll(() => vi.restoreAllMocks());
 
-  function buildErrorApp(env = "development") {
+  async function buildErrorApp(env = "development") {
     const savedEnv = process.env.NODE_ENV;
     process.env.NODE_ENV = env;
-    jest.resetModules();
+    vi.resetModules();
 
-    const express = require("express");
-    const { errorHandler } = require("./middleware/errorHandler.js");
+    const expressMod = await import("express");
+    const express = expressMod.default;
+    const { errorHandler } = await import("./middleware/errorHandler.js");
 
     const app = express();
     app.use(express.json());
@@ -256,9 +267,12 @@ describe("Error-handling middleware", () => {
 
     return app;
   }
+
   describe("development mode", () => {
     let app;
-    beforeAll(() => (app = buildErrorApp("development")));
+    beforeAll(async () => {
+      app = await buildErrorApp("development");
+    });
     afterAll(() => {
       process.env.NODE_ENV = "development";
     });
@@ -284,9 +298,9 @@ describe("Error-handling middleware", () => {
 
   describe("production mode", () => {
     let app;
-    beforeAll(() => {
+    beforeAll(async () => {
       process.env.NODE_ENV = "production";
-      app = buildErrorApp("production");
+      app = await buildErrorApp("production");
     });
     afterAll(() => {
       process.env.NODE_ENV = "development";
@@ -315,11 +329,11 @@ describe("Error-handling middleware", () => {
 // ---------------------------------------------------------------------------
 describe("JSON body parsing", () => {
   let app;
-  beforeAll(() => (app = buildApp()));
+  beforeAll(async () => {
+    app = await buildApp();
+  });
 
   it("parses JSON request bodies on API routes", async () => {
-    // POST /api/users echoes back { route: "users" } via our mock; the
-    // important assertion is that the server did NOT reject the body.
     const res = await request(app)
       .post("/api/users")
       .set("Content-Type", "application/json")
@@ -332,7 +346,6 @@ describe("JSON body parsing", () => {
       .post("/api/users")
       .set("Content-Type", "application/json")
       .send("{bad json}");
-    // Express's built-in JSON parser responds with 400
     expect(res.status).toBe(400);
     expect(res.body.error).toBe("Invalid JSON");
   });
@@ -341,7 +354,9 @@ describe("JSON body parsing", () => {
 // ---------------------------------------------------------------------------
 describe("Production static-file serving", () => {
   let app;
-  beforeAll(() => (app = buildApp({ env: "production" })));
+  beforeAll(async () => {
+    app = await buildApp({ env: "production" });
+  });
 
   it("returns 404 JSON for unknown /api/* paths in production", async () => {
     const res = await request(app).get("/api/not-here");
@@ -355,12 +370,14 @@ describe("Production static-file serving", () => {
     expect(res.text).toBe("Not found");
   });
 });
+
 // ---------------------------------------------------------------------------
 describe("checkRequiredEnv is called on startup", () => {
-  it("invokes checkRequiredEnv when the module is loaded", () => {
-    jest.resetModules();
-    const { checkRequiredEnv } = require("./config/check-env.js");
-    require("./server.js");
+  it("invokes checkRequiredEnv when the module is loaded", async () => {
+    vi.resetModules();
+    const { checkRequiredEnv } = await import("./config/check-env.js");
+    checkRequiredEnv.mockClear();
+    await import("./server.js");
     expect(checkRequiredEnv).toHaveBeenCalledTimes(1);
   });
 });

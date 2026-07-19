@@ -75,7 +75,7 @@ async function resetDatabase() {
   await mongoose.connect(uri);
   console.log(`Connected to MongoDB database '${DB_NAME}'.`);
 
-  // Drop existing collections if they exist (DROP TABLE IF EXISTS transactions/budgets/budget_categories/users)
+  // Drop existing collections if they exist (similar to DROP TABLE IF EXISTS transactions/budgets/budget_categories/users)
   const existingCollections = await mongoose.connection.db.listCollections().toArray();
   const existingNames = new Set(existingCollections.map((c) => c.name));
 

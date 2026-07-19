@@ -108,7 +108,4 @@ if (isMainModule) {
     });
 }
 
-if (typeof module !== "undefined" && module.exports) {
-  module.exports = app; // For Jest/test compatibility
-}
 export default app; // For production ES Module usage
