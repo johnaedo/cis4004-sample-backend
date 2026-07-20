@@ -35,7 +35,6 @@ export const authenticateToken = async (req, res, next) => {
     } catch (jwtError) {
       // Covers both invalid/expired JWTs and a malformed decoded.id that
       // can't be cast to a Mongo ObjectId - either way, continue without a user
-      console.log("JWT verification error:", jwtError);
       req.user = null;
       next();
     }

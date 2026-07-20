@@ -22,8 +22,4 @@ export const checkRequiredEnv = () => {
       console.error('No valid database configuration found');
       process.exit(1);
     }
-
-    console.log('Environment check passed');
-    console.log(`MongoDB URI: ${process.env.MONGODB_URI}`);
-    console.log('Environment:', process.env.NODE_ENV);
   };

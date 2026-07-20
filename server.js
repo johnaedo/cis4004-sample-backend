@@ -12,6 +12,7 @@ import budgetsRouter from "./routes/budgets.js";
 import { checkRequiredEnv } from "./config/check-env.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 import { notFoundHandler } from "./middleware/notFoundHandler.js";
+import { requestLogger } from "./middleware/requestLogger.js";
 checkRequiredEnv();
 
 // ES Module equivalent of __serverDirname
@@ -35,6 +36,7 @@ app.use(
 );
 
 app.use(express.json());
+app.use(requestLogger);
 
 // API Routes
 app.use("/api/users", usersRouter);
@@ -68,23 +70,13 @@ if (isMainModule) {
   connectDB()
     .then(() => {
       const server = app.listen(PORT, () => {
-        console.log(
-          `🚀 Server running in ${
-            process.env.NODE_ENV || "development"
-          } mode on port ${PORT}`,
-        );
-        if (process.env.NODE_ENV === "production") {
-          console.log("🌐 Serving static files from React build");
-        }
+        console.log("Server started and connected to database");
       });
 
       // Graceful shutdown
       process.on("SIGTERM", () => {
-        console.log("SIGTERM signal received: closing HTTP server");
         server.close(() => {
-          console.log("HTTP server closed");
           mongoose.connection.close(false).then(() => {
-            console.log("MongoDB connection closed");
             process.exit(0);
           });
         });

@@ -10,7 +10,6 @@ router.get("/", authenticateToken, async (req, res) => {
     const results = await Category.find({
       $or: [{ user: req.user.id }, { user: null }],
     });
-    console.table(results);
     res.json(results);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -38,10 +37,6 @@ router.post("/", authenticateToken, async (req, res) => {
 router.put("/:id", authenticateToken, async (req, res) => {
   try {
     const { name, type, color } = req.body;
-    console.log("Body:");
-    console.table(req.body);
-    console.log("Params:");
-    console.table(req.params);
     const updatedCategory = await Category.findOneAndUpdate(
       { _id: req.params.id, user: req.user.id },
       { name, type, color },

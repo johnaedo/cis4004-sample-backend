@@ -12,15 +12,10 @@ export async function connectDB() {
   }
 
   await mongoose.connect(uri);
-  console.log(`🗄️  MongoDB connected: ${mongoose.connection.host}/${mongoose.connection.name}`);
 }
 
 mongoose.connection.on("error", (err) => {
   console.error("MongoDB connection error:", err);
-});
-
-mongoose.connection.on("disconnected", () => {
-  console.log("MongoDB disconnected");
 });
 
 export { mongoose };
