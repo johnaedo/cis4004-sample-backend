@@ -5,7 +5,15 @@ info:
 
 http:
   method: POST
-  url: "{{baseUrl"
+  url: "{{baseUrl}}users/register"
+  body:
+    type: json
+    data: |-
+      {
+        "username":"mickey",
+        "email":"mouse@disney.com",
+        "password":"eigersux"
+      }
   auth: inherit
 
 settings:
